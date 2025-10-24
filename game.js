@@ -140,10 +140,20 @@ class Tower {
         }
         
         this.lastFireTime = 0;
+        this.showRange = false;
     }
     
     // draw the tower
     draw() {
+        // draw range circle if hovering
+        if (this.showRange) {
+            ctx.strokeStyle = 'rgba(255, 255, 0, 0.5)'; // semi-transparent yellow
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.arc(this.x, this.y, this.range, 0, 2 * Math.PI);
+            ctx.stroke();
+        }
+        
         // draw tower body
         ctx.fillStyle = this.color;
         ctx.fillRect(this.x - 15, this.y - 15, 30, 30);
@@ -156,6 +166,13 @@ class Tower {
     
     // draw preview (semi-transparent)
     drawPreview() {
+        // draw range preview
+        ctx.strokeStyle = 'rgba(255, 255, 0, 0.3)'; // very transparent yellow
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.range, 0, 2 * Math.PI);
+        ctx.stroke();
+        
         ctx.fillStyle = this.color + '80'; // add transparency
         ctx.fillRect(this.x - 15, this.y - 15, 30, 30);
         
@@ -215,6 +232,25 @@ function handleMouseMove(event) {
     
     // create preview tower
     previewTower = new Tower(pixelPos.x + cellWidth/2, pixelPos.y + cellHeight/2, selectedTowerType);
+    
+    // check if hovering over existing tower
+    const hoveredTower = getTowerAtPosition(mouseX, mouseY);
+    if (hoveredTower) {
+        hoveredTower.showRange = true;
+    } else {
+        // hide range for all towers
+        towers.forEach(tower => tower.showRange = false);
+    }
+}
+
+// get tower at mouse position
+function getTowerAtPosition(mouseX, mouseY) {
+    return towers.find(tower => {
+        const dx = mouseX - tower.x;
+        const dy = mouseY - tower.y;
+        const distance = Math.sqrt(dx * dx + dy * dy);
+        return distance <= 15; // tower radius
+    });
 }
 
 // handle mouse click for tower placement
