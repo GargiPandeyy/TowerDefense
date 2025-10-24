@@ -274,6 +274,15 @@ function setupEventListeners() {
     // add mouse events for tower placement
     canvas.addEventListener('mousemove', handleMouseMove);
     canvas.addEventListener('click', handleMouseClick);
+    
+    // add tower selection buttons
+    const basicTowerBtn = document.getElementById('basicTowerBtn');
+    const sniperTowerBtn = document.getElementById('sniperTowerBtn');
+    const splashTowerBtn = document.getElementById('splashTowerBtn');
+    
+    basicTowerBtn.addEventListener('click', () => selectTowerType('basic'));
+    sniperTowerBtn.addEventListener('click', () => selectTowerType('sniper'));
+    splashTowerBtn.addEventListener('click', () => selectTowerType('splash'));
 }
 
 // start game
@@ -292,6 +301,24 @@ function startGame() {
 function pauseGame() {
     gameRunning = false;
     console.log('game paused');
+}
+
+// select tower type
+function selectTowerType(type) {
+    selectedTowerType = type;
+    
+    // update button styles
+    document.querySelectorAll('.tower-btn').forEach(btn => btn.classList.remove('active'));
+    
+    if (type === 'basic') {
+        document.getElementById('basicTowerBtn').classList.add('active');
+    } else if (type === 'sniper') {
+        document.getElementById('sniperTowerBtn').classList.add('active');
+    } else if (type === 'splash') {
+        document.getElementById('splashTowerBtn').classList.add('active');
+    }
+    
+    console.log(`selected tower type: ${type}`);
 }
 
 // handle mouse move for tower preview
