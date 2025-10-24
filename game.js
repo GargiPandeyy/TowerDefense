@@ -25,14 +25,33 @@ const path = [
 
 // enemy class
 class Enemy {
-    constructor(x, y) {
+    constructor(x, y, type = 'basic') {
         this.x = x;
         this.y = y;
-        this.health = 50;
-        this.maxHealth = 50;
-        this.speed = 1;
+        this.type = type;
         this.pathIndex = 0;
-        this.reward = 10;
+        
+        // set stats based on type
+        if (type === 'fast') {
+            this.health = 30;
+            this.maxHealth = 30;
+            this.speed = 2;
+            this.reward = 15;
+            this.color = '#FFD700'; // gold color
+        } else if (type === 'tank') {
+            this.health = 100;
+            this.maxHealth = 100;
+            this.speed = 0.5;
+            this.reward = 25;
+            this.color = '#8B4513'; // brown color
+        } else {
+            // basic enemy
+            this.health = 50;
+            this.maxHealth = 50;
+            this.speed = 1;
+            this.reward = 10;
+            this.color = '#FF6B6B'; // red color
+        }
     }
     
     // update enemy position
@@ -65,7 +84,7 @@ class Enemy {
     // draw the enemy
     draw() {
         // draw enemy body
-        ctx.fillStyle = '#FF6B6B'; // red color
+        ctx.fillStyle = this.color;
         ctx.beginPath();
         ctx.arc(this.x, this.y, 12, 0, 2 * Math.PI);
         ctx.fill();
@@ -108,9 +127,11 @@ function startGame() {
     gameRunning = true;
     console.log('game started');
     
-    // create test enemy at start point
+    // create test enemies at start point
     const startPos = gridToPixel(path[0].x, path[0].y);
-    enemies.push(new Enemy(startPos.x + cellWidth/2, startPos.y + cellHeight/2));
+    enemies.push(new Enemy(startPos.x + cellWidth/2, startPos.y + cellHeight/2, 'basic'));
+    enemies.push(new Enemy(startPos.x + cellWidth/2, startPos.y + cellHeight/2 + 30, 'fast'));
+    enemies.push(new Enemy(startPos.x + cellWidth/2, startPos.y + cellHeight/2 + 60, 'tank'));
 }
 
 // pause game
