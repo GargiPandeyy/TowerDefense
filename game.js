@@ -6,6 +6,7 @@ const ctx = canvas.getContext('2d');
 let gameRunning = false;
 let fps = 0;
 let lastTime = 0;
+let enemies = [];
 
 // grid variables
 const gridSize = 20; // 20x20 grid
@@ -21,6 +22,43 @@ const path = [
     { x: 15, y: 15 },
     { x: 19, y: 15 }   // end point
 ];
+
+// enemy class
+class Enemy {
+    constructor(x, y) {
+        this.x = x;
+        this.y = y;
+        this.health = 50;
+        this.maxHealth = 50;
+        this.speed = 1;
+        this.pathIndex = 0;
+        this.reward = 10;
+    }
+    
+    // draw the enemy
+    draw() {
+        // draw enemy body
+        ctx.fillStyle = '#FF6B6B'; // red color
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, 12, 0, 2 * Math.PI);
+        ctx.fill();
+        
+        // draw health bar
+        const barWidth = 20;
+        const barHeight = 4;
+        const barX = this.x - barWidth/2;
+        const barY = this.y - 20;
+        
+        // background (red)
+        ctx.fillStyle = '#FF0000';
+        ctx.fillRect(barX, barY, barWidth, barHeight);
+        
+        // health (green)
+        const healthPercent = this.health / this.maxHealth;
+        ctx.fillStyle = '#00FF00';
+        ctx.fillRect(barX, barY, barWidth * healthPercent, barHeight);
+    }
+}
 
 // initialize game
 function init() {
@@ -42,6 +80,10 @@ function setupEventListeners() {
 function startGame() {
     gameRunning = true;
     console.log('game started');
+    
+    // create test enemy at start point
+    const startPos = gridToPixel(path[0].x, path[0].y);
+    enemies.push(new Enemy(startPos.x + cellWidth/2, startPos.y + cellHeight/2));
 }
 
 // pause game
@@ -136,6 +178,9 @@ function gameLoop(currentTime) {
     
     // draw path
     drawPath();
+    
+    // draw enemies
+    enemies.forEach(enemy => enemy.draw());
     
     // draw fps counter
     ctx.fillStyle = 'white';
