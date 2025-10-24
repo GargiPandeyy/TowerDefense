@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tower Defense Game</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="game-container">
+        <div class="game-info">
+            <div class="info-item">
+                <span>Money: </span>
+                <span id="money">100</span>
+            </div>
+            <div class="info-item">
+                <span>Health: </span>
+                <span id="health">20</span>
+            </div>
+            <div class="info-item">
+                <span>Wave: </span>
+                <span id="wave">1</span>
+            </div>
+        </div>
+        
+        <canvas id="gameCanvas" width="800" height="600"></canvas>
+        
+        <div class="controls">
+            <button id="startBtn" class="btn">Start Game</button>
+            <button id="pauseBtn" class="btn">Pause</button>
+        </div>
+        
+        <div class="tower-info">
+            <h3>Tower Types:</h3>
+            <div class="tower-type">
+                <span>Basic Tower - $50</span>
+            </div>
+            <div class="tower-type">
+                <span>Sniper Tower - $100</span>
+            </div>
+            <div class="tower-type">
+                <span>Splash Tower - $120</span>
+            </div>
+        </div>
+    </div>
+    
+    <script src="game.js"></script>
+</body>
+</html>
