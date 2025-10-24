@@ -7,6 +7,9 @@ let gameRunning = false;
 let fps = 0;
 let lastTime = 0;
 let enemies = [];
+let towers = [];
+let selectedTowerType = 'basic';
+let previewTower = null;
 
 // grid variables
 const gridSize = 20; // 20x20 grid
@@ -106,6 +109,62 @@ class Enemy {
     }
 }
 
+// tower class
+class Tower {
+    constructor(x, y, type = 'basic') {
+        this.x = x;
+        this.y = y;
+        this.type = type;
+        
+        // set stats based on type
+        if (type === 'sniper') {
+            this.damage = 40;
+            this.range = 200;
+            this.fireRate = 2000; // milliseconds
+            this.cost = 100;
+            this.color = '#4169E1'; // royal blue
+        } else if (type === 'splash') {
+            this.damage = 15;
+            this.range = 80;
+            this.fireRate = 1500;
+            this.cost = 120;
+            this.splashRadius = 50;
+            this.color = '#32CD32'; // lime green
+        } else {
+            // basic tower
+            this.damage = 10;
+            this.range = 100;
+            this.fireRate = 1000;
+            this.cost = 50;
+            this.color = '#FF6347'; // tomato red
+        }
+        
+        this.lastFireTime = 0;
+    }
+    
+    // draw the tower
+    draw() {
+        // draw tower body
+        ctx.fillStyle = this.color;
+        ctx.fillRect(this.x - 15, this.y - 15, 30, 30);
+        
+        // draw tower border
+        ctx.strokeStyle = '#000';
+        ctx.lineWidth = 2;
+        ctx.strokeRect(this.x - 15, this.y - 15, 30, 30);
+    }
+    
+    // draw preview (semi-transparent)
+    drawPreview() {
+        ctx.fillStyle = this.color + '80'; // add transparency
+        ctx.fillRect(this.x - 15, this.y - 15, 30, 30);
+        
+        ctx.strokeStyle = '#000';
+        ctx.lineWidth = 2;
+        ctx.strokeRect(this.x - 15, this.y - 15, 30, 30);
+    }
+}
+
 // initialize game
 function init() {
     console.log('game initialized');
@@ -120,6 +179,10 @@ function setupEventListeners() {
     
     startBtn.addEventListener('click', startGame);
     pauseBtn.addEventListener('click', pauseGame);
+    
+    // add mouse events for tower placement
+    canvas.addEventListener('mousemove', handleMouseMove);
+    canvas.addEventListener('click', handleMouseClick);
 }
 
 // start game
@@ -138,6 +201,46 @@ function startGame() {
 function pauseGame() {
     gameRunning = false;
     console.log('game paused');
+}
+
+// handle mouse move for tower preview
+function handleMouseMove(event) {
+    const rect = canvas.getBoundingClientRect();
+    const mouseX = event.clientX - rect.left;
+    const mouseY = event.clientY - rect.top;
+    
+    // convert to grid coordinates
+    const gridPos = pixelToGrid(mouseX, mouseY);
+    const pixelPos = gridToPixel(gridPos.x, gridPos.y);
+    
+    // create preview tower
+    previewTower = new Tower(pixelPos.x + cellWidth/2, pixelPos.y + cellHeight/2, selectedTowerType);
+}
+
+// handle mouse click for tower placement
+function handleMouseClick(event) {
+    const rect = canvas.getBoundingClientRect();
+    const mouseX = event.clientX - rect.left;
+    const mouseY = event.clientY - rect.top;
+    
+    // convert to grid coordinates
+    const gridPos = pixelToGrid(mouseX, mouseY);
+    const pixelPos = gridToPixel(gridPos.x, gridPos.y);
+    
+    // check if position is valid (not on path)
+    const isValidPosition = !isOnPath(gridPos.x, gridPos.y);
+    
+    if (isValidPosition) {
+        // place tower
+        const tower = new Tower(pixelPos.x + cellWidth/2, pixelPos.y + cellHeight/2, selectedTowerType);
+        towers.push(tower);
+        console.log(`placed ${selectedTowerType} tower at (${gridPos.x}, ${gridPos.y})`);
+    }
+}
+
+// check if grid position is on the path
+function isOnPath(gridX, gridY) {
+    return path.some(point => point.x === gridX && point.y === gridY);
 }
 
 // convert pixel coordinates to grid coordinates
@@ -232,6 +335,14 @@ function gameLoop(currentTime) {
         enemy.update();
         enemy.draw();
     });
+    
+    // draw towers
+    towers.forEach(tower => tower.draw());
+    
+    // draw preview tower
+    if (previewTower) {
+        previewTower.drawPreview();
+    }
     
     // draw fps counter
     ctx.fillStyle = 'white';
