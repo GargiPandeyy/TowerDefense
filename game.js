@@ -8,6 +8,7 @@ let fps = 0;
 let lastTime = 0;
 let enemies = [];
 let towers = [];
+let bullets = [];
 let selectedTowerType = 'basic';
 let previewTower = null;
 
@@ -179,6 +180,79 @@ class Tower {
         ctx.strokeStyle = '#000';
         ctx.lineWidth = 2;
         ctx.strokeRect(this.x - 15, this.y - 15, 30, 30);
+    }
+    
+    // find target enemy
+    findTarget() {
+        let closestEnemy = null;
+        let closestDistance = this.range;
+        
+        enemies.forEach(enemy => {
+            const dx = enemy.x - this.x;
+            const dy = enemy.y - this.y;
+            const distance = Math.sqrt(dx * dx + dy * dy);
+            
+            if (distance <= this.range && distance < closestDistance) {
+                closestEnemy = enemy;
+                closestDistance = distance;
+            }
+        });
+        
+        return closestEnemy;
+    }
+    
+    // shoot at target
+    shoot() {
+        const currentTime = Date.now();
+        if (currentTime - this.lastFireTime >= this.fireRate) {
+            const target = this.findTarget();
+            if (target) {
+                const bullet = new Bullet(this.x, this.y, target.x, target.y, this.damage);
+                bullets.push(bullet);
+                this.lastFireTime = currentTime;
+            }
+        }
+    }
+}
+
+// bullet class
+class Bullet {
+    constructor(x, y, targetX, targetY, damage) {
+        this.x = x;
+        this.y = y;
+        this.targetX = targetX;
+        this.targetY = targetY;
+        this.damage = damage;
+        this.speed = 5;
+        
+        // calculate direction
+        const dx = targetX - x;
+        const dy = targetY - y;
+        const distance = Math.sqrt(dx * dx + dy * dy);
+        this.vx = (dx / distance) * this.speed;
+        this.vy = (dy / distance) * this.speed;
+    }
+    
+    // update bullet position
+    update() {
+        this.x += this.vx;
+        this.y += this.vy;
+    }
+    
+    // draw bullet
+    draw() {
+        ctx.fillStyle = '#FFFF00'; // yellow bullet
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, 3, 0, 2 * Math.PI);
+        ctx.fill();
+    }
+    
+    // check if bullet reached target
+    reachedTarget() {
+        const dx = this.targetX - this.x;
+        const dy = this.targetY - this.y;
+        const distance = Math.sqrt(dx * dx + dy * dy);
+        return distance < 5;
     }
 }
 
@@ -372,8 +446,22 @@ function gameLoop(currentTime) {
         enemy.draw();
     });
     
-    // draw towers
-    towers.forEach(tower => tower.draw());
+    // update towers (shooting)
+    towers.forEach(tower => {
+        tower.shoot();
+        tower.draw();
+    });
+    
+    // update and draw bullets
+    bullets.forEach((bullet, index) => {
+        bullet.update();
+        bullet.draw();
+        
+        // remove bullets that reached target
+        if (bullet.reachedTarget()) {
+            bullets.splice(index, 1);
+        }
+    });
     
     // draw preview tower
     if (previewTower) {
