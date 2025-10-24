@@ -35,6 +35,33 @@ class Enemy {
         this.reward = 10;
     }
     
+    // update enemy position
+    update() {
+        if (this.pathIndex >= path.length - 1) {
+            return; // reached end
+        }
+        
+        // get current target
+        const target = path[this.pathIndex + 1];
+        const targetPos = gridToPixel(target.x, target.y);
+        const targetX = targetPos.x + cellWidth/2;
+        const targetY = targetPos.y + cellHeight/2;
+        
+        // calculate direction
+        const dx = targetX - this.x;
+        const dy = targetY - this.y;
+        const distance = Math.sqrt(dx * dx + dy * dy);
+        
+        if (distance < 2) {
+            // reached waypoint, move to next
+            this.pathIndex++;
+        } else {
+            // move towards target
+            this.x += (dx / distance) * this.speed;
+            this.y += (dy / distance) * this.speed;
+        }
+    }
+    
     // draw the enemy
     draw() {
         // draw enemy body
@@ -179,8 +206,11 @@ function gameLoop(currentTime) {
     // draw path
     drawPath();
     
-    // draw enemies
-    enemies.forEach(enemy => enemy.draw());
+    // update and draw enemies
+    enemies.forEach(enemy => {
+        enemy.update();
+        enemy.draw();
+    });
     
     // draw fps counter
     ctx.fillStyle = 'white';
