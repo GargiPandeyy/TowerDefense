@@ -621,6 +621,7 @@ function updateUI() {
     document.getElementById('money').textContent = money;
     document.getElementById('health').textContent = health;
     document.getElementById('wave').textContent = currentWave;
+    document.getElementById('kills').textContent = kills;
 }
 
 // start wave

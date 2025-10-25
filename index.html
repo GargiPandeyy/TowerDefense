@@ -4,68 +4,144 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tower Defense Game</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
+    <div class="background-blur"></div>
+
     <div class="game-container">
-        <div class="game-info">
-            <div class="info-item">
-                <span>Money: </span>
-                <span id="money">100</span>
+        <header class="game-header">
+            <h1 class="game-title">🏰 Tower Defense</h1>
+            <div class="game-stats">
+                <div class="stat-card">
+                    <div class="stat-icon">💰</div>
+                    <div class="stat-details">
+                        <span class="stat-label">Money</span>
+                        <span class="stat-value" id="money">100</span>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">❤️</div>
+                    <div class="stat-details">
+                        <span class="stat-label">Health</span>
+                        <span class="stat-value" id="health">20</span>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">🌊</div>
+                    <div class="stat-details">
+                        <span class="stat-label">Wave</span>
+                        <span class="stat-value" id="wave">1</span>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">💀</div>
+                    <div class="stat-details">
+                        <span class="stat-label">Kills</span>
+                        <span class="stat-value" id="kills">0</span>
+                    </div>
+                </div>
             </div>
-            <div class="info-item">
-                <span>Health: </span>
-                <span id="health">20</span>
+        </header>
+
+        <div class="game-main">
+            <div class="canvas-container">
+                <canvas id="gameCanvas" width="800" height="600"></canvas>
             </div>
-            <div class="info-item">
-                <span>Wave: </span>
-                <span id="wave">1</span>
-            </div>
+
+            <aside class="game-sidebar">
+                <div class="sidebar-section tower-selection">
+                    <h3 class="section-title">⚔️ Select Tower</h3>
+                    <div class="tower-buttons">
+                        <button id="basicTowerBtn" class="tower-btn active" data-tower="basic">
+                            <span class="tower-icon">🔴</span>
+                            <span class="tower-name">Basic</span>
+                            <span class="tower-cost">$50</span>
+                        </button>
+                        <button id="sniperTowerBtn" class="tower-btn" data-tower="sniper">
+                            <span class="tower-icon">🔵</span>
+                            <span class="tower-name">Sniper</span>
+                            <span class="tower-cost">$100</span>
+                        </button>
+                        <button id="splashTowerBtn" class="tower-btn" data-tower="splash">
+                            <span class="tower-icon">🟢</span>
+                            <span class="tower-name">Splash</span>
+                            <span class="tower-cost">$120</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="sidebar-section tower-info">
+                    <h3 class="section-title">📊 Tower Stats</h3>
+                    <div class="info-cards">
+                        <div class="info-card">
+                            <div class="info-icon">🔴</div>
+                            <div class="info-text">
+                                <strong>Basic Tower</strong>
+                                <span>Fast firing, low damage</span>
+                            </div>
+                        </div>
+                        <div class="info-card">
+                            <div class="info-icon">🔵</div>
+                            <div class="info-text">
+                                <strong>Sniper Tower</strong>
+                                <span>Slow firing, high damage</span>
+                            </div>
+                        </div>
+                        <div class="info-card">
+                            <div class="info-icon">🟢</div>
+                            <div class="info-text">
+                                <strong>Splash Tower</strong>
+                                <span>Area damage effect</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="sidebar-section instructions">
+                    <h3 class="section-title">🎮 How to Play</h3>
+                    <div class="instruction-list">
+                        <div class="instruction-item">
+                            <span class="instruction-icon">👆</span>
+                            <span>Click grid to place towers</span>
+                        </div>
+                        <div class="instruction-item">
+                            <span class="instruction-icon">🖱️</span>
+                            <span>Right-click to upgrade</span>
+                        </div>
+                        <div class="instruction-item">
+                            <span class="instruction-icon">🏆</span>
+                            <span>Survive 10 waves to win!</span>
+                        </div>
+                    </div>
+                </div>
+            </aside>
         </div>
-        
-        <canvas id="gameCanvas" width="800" height="600"></canvas>
-        
+
         <div class="controls">
-            <button id="startBtn" class="btn">Start Game</button>
-            <button id="pauseBtn" class="btn">Pause</button>
-            <button id="nextWaveBtn" class="btn">Next Wave</button>
-            <button id="tutorialBtn" class="btn">Show Tutorial</button>
-        </div>
-        
-        <div class="tower-selection">
-            <h3>Select Tower Type:</h3>
-            <button id="basicTowerBtn" class="tower-btn active">Basic Tower ($50)</button>
-            <button id="sniperTowerBtn" class="tower-btn">Sniper Tower ($100)</button>
-            <button id="splashTowerBtn" class="tower-btn">Splash Tower ($120)</button>
-        </div>
-        
-        <div class="tower-info">
-            <h3>Tower Types:</h3>
-            <div class="tower-type">
-                <span>Basic Tower - $50 (Fast, Low Damage)</span>
-            </div>
-            <div class="tower-type">
-                <span>Sniper Tower - $100 (Slow, High Damage)</span>
-            </div>
-            <div class="tower-type">
-                <span>Splash Tower - $120 (Area Damage)</span>
-            </div>
-        </div>
-        
-        <div class="instructions">
-            <h3>How to Play:</h3>
-            <div class="instruction-item">
-                <span>• Click on grid to place towers</span>
-            </div>
-            <div class="instruction-item">
-                <span>• Right-click towers to upgrade</span>
-            </div>
-            <div class="instruction-item">
-                <span>• Survive 10 waves to win!</span>
-            </div>
+            <button id="startBtn" class="btn btn-primary">
+                <span class="btn-icon">▶️</span>
+                <span>Start Game</span>
+            </button>
+            <button id="pauseBtn" class="btn btn-warning">
+                <span class="btn-icon">⏸️</span>
+                <span>Pause</span>
+            </button>
+            <button id="nextWaveBtn" class="btn btn-success">
+                <span class="btn-icon">🌊</span>
+                <span>Next Wave</span>
+            </button>
+            <button id="tutorialBtn" class="btn btn-info">
+                <span class="btn-icon">❓</span>
+                <span>Tutorial</span>
+            </button>
         </div>
     </div>
-    
+
     <script src="game.js"></script>
 </body>
 </html>
+
