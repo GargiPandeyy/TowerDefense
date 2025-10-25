@@ -249,6 +249,11 @@ class Tower {
                 const bullet = new Bullet(this.x, this.y, target.x, target.y, this.damage, splashRadius);
                 bullets.push(bullet);
                 this.lastFireTime = currentTime;
+                if (this.type === 'sniper') {
+                    console.log(`sniper fired! damage: ${this.damage}, bullet created`);
+                }
+            } else if (this.type === 'sniper') {
+                console.log(`sniper ready to fire but no target in range (${this.range})`);
             }
         }
     }
@@ -461,12 +466,12 @@ function handleMouseClick(event) {
     if (isValidPosition) {
         // create tower to check cost
         const tower = new Tower(pixelPos.x + cellWidth/2, pixelPos.y + cellHeight/2, selectedTowerType);
-        
+
         // check if player can afford tower
         if (money >= tower.cost) {
             towers.push(tower);
             money -= tower.cost;
-            console.log(`placed ${selectedTowerType} tower at (${gridPos.x}, ${gridPos.y}) for $${tower.cost}`);
+            console.log(`placed ${selectedTowerType} tower at (${gridPos.x}, ${gridPos.y}) for $${tower.cost}. Tower stats: damage=${tower.damage}, range=${tower.range}, fireRate=${tower.fireRate}`);
         } else {
             console.log(`not enough money! need $${tower.cost}, have $${money}`);
         }
