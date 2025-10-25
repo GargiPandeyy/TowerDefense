@@ -857,12 +857,12 @@ function gameLoop(currentTime) {
         // game is running
         ctx.fillStyle = 'yellow';
         ctx.font = '16px Arial';
-        ctx.fillText('GAME RUNNING', 10, 100);
+        ctx.fillText('GAME RUNNING', 10, 140);
     } else {
         // game is paused
         ctx.fillStyle = 'red';
         ctx.font = '16px Arial';
-        ctx.fillText('GAME PAUSED', 10, 100);
+        ctx.fillText('GAME PAUSED', 10, 140);
     }
     
     // continue loop
