@@ -55,12 +55,18 @@ class Enemy {
             this.speed = 2 + (waveMultiplier * 0.1);
             this.reward = Math.floor(15 * (1 + waveMultiplier * 0.3));
             this.color = '#FFD700'; // gold color
+            this.attackDamage = 5;
+            this.attackRange = 30;
+            this.attackRate = 1000; // 1 second
         } else if (type === 'tank') {
             this.health = Math.floor(100 * (1 + waveMultiplier * 0.3));
             this.maxHealth = this.health;
             this.speed = Math.max(0.5 - (waveMultiplier * 0.02), 0.2);
             this.reward = Math.floor(25 * (1 + waveMultiplier * 0.4));
             this.color = '#8B4513'; // brown color
+            this.attackDamage = 15;
+            this.attackRange = 40;
+            this.attackRate = 1500; // 1.5 seconds
         } else {
             // basic enemy
             this.health = Math.floor(50 * (1 + waveMultiplier * 0.25));
@@ -68,7 +74,13 @@ class Enemy {
             this.speed = 1 + (waveMultiplier * 0.05);
             this.reward = Math.floor(10 * (1 + waveMultiplier * 0.2));
             this.color = '#FF6B6B'; // red color
+            this.attackDamage = 8;
+            this.attackRange = 35;
+            this.attackRate = 1200; // 1.2 seconds
         }
+
+        this.lastAttackTime = 0;
+        this.isAttackingTower = false;
     }
     
     // update enemy position
@@ -101,6 +113,38 @@ class Enemy {
         }
     }
     
+    // find and attack nearby towers
+    attackNearbyTowers() {
+        const currentTime = Date.now();
+        if (currentTime - this.lastAttackTime < this.attackRate) {
+            return; // can't attack yet
+        }
+
+        // find closest tower in range
+        let closestTower = null;
+        let closestDistance = this.attackRange;
+
+        towers.forEach(tower => {
+            const dx = tower.x - this.x;
+            const dy = tower.y - this.y;
+            const distance = Math.sqrt(dx * dx + dy * dy);
+
+            if (distance <= this.attackRange && distance < closestDistance) {
+                closestTower = tower;
+                closestDistance = distance;
+            }
+        });
+
+        if (closestTower) {
+            closestTower.health -= this.attackDamage;
+            this.lastAttackTime = currentTime;
+            this.isAttackingTower = true;
+            console.log(`${this.type} enemy attacked tower! damage: ${this.attackDamage}, tower health: ${closestTower.health}`);
+        } else {
+            this.isAttackingTower = false;
+        }
+    }
+
     // draw the enemy
     draw() {
         // draw enemy body
@@ -108,17 +152,26 @@ class Enemy {
         ctx.beginPath();
         ctx.arc(this.x, this.y, 12, 0, 2 * Math.PI);
         ctx.fill();
-        
+
+        // draw attack indicator if attacking tower
+        if (this.isAttackingTower) {
+            ctx.strokeStyle = '#FF0000';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.arc(this.x, this.y, 15, 0, 2 * Math.PI);
+            ctx.stroke();
+        }
+
         // draw health bar
         const barWidth = 20;
         const barHeight = 4;
         const barX = this.x - barWidth/2;
         const barY = this.y - 20;
-        
+
         // background (red)
         ctx.fillStyle = '#FF0000';
         ctx.fillRect(barX, barY, barWidth, barHeight);
-        
+
         // health (green)
         const healthPercent = this.health / this.maxHealth;
         ctx.fillStyle = '#00FF00';
@@ -139,6 +192,8 @@ class Tower {
             this.range = 200;
             this.fireRate = 2000; // milliseconds
             this.cost = 100;
+            this.health = 150;
+            this.maxHealth = 150;
             this.color = '#4169E1'; // royal blue
         } else if (type === 'splash') {
             this.damage = 15;
@@ -146,6 +201,8 @@ class Tower {
             this.fireRate = 1500;
             this.cost = 120;
             this.splashRadius = 50;
+            this.health = 120;
+            this.maxHealth = 120;
             this.color = '#32CD32'; // lime green
         } else {
             // basic tower
@@ -153,18 +210,15 @@ class Tower {
             this.range = 100;
             this.fireRate = 1000;
             this.cost = 50;
+            this.health = 100;
+            this.maxHealth = 100;
             this.color = '#FF6347'; // tomato red
         }
-        
+
         this.lastFireTime = 0;
         this.showRange = false;
         this.level = 1;
         this.upgradeCost = Math.floor(this.cost * 0.5);
-
-        // Debug: log tower creation
-        if (type === 'sniper') {
-            console.log(`SNIPER TOWER CREATED: damage=${this.damage}, range=${this.range}, fireRate=${this.fireRate}, lastFireTime=${this.lastFireTime}`);
-        }
     }
     
     // draw the tower
@@ -177,20 +231,35 @@ class Tower {
             ctx.arc(this.x, this.y, this.range, 0, 2 * Math.PI);
             ctx.stroke();
         }
-        
+
         // draw tower body
         ctx.fillStyle = this.color;
         ctx.fillRect(this.x - 15, this.y - 15, 30, 30);
-        
+
         // draw tower border
         ctx.strokeStyle = '#000';
         ctx.lineWidth = 2;
         ctx.strokeRect(this.x - 15, this.y - 15, 30, 30);
-        
+
         // draw level indicator
         ctx.fillStyle = 'white';
         ctx.font = '12px Arial';
         ctx.fillText(this.level.toString(), this.x - 5, this.y + 5);
+
+        // draw health bar
+        const barWidth = 30;
+        const barHeight = 4;
+        const barX = this.x - barWidth/2;
+        const barY = this.y - 25;
+
+        // background (red)
+        ctx.fillStyle = '#FF0000';
+        ctx.fillRect(barX, barY, barWidth, barHeight);
+
+        // health (green)
+        const healthPercent = this.health / this.maxHealth;
+        ctx.fillStyle = '#00FF00';
+        ctx.fillRect(barX, barY, barWidth * healthPercent, barHeight);
     }
     
     // draw preview (semi-transparent)
@@ -218,6 +287,8 @@ class Tower {
             this.damage = Math.floor(this.damage * 1.3);
             this.range = Math.floor(this.range * 1.1);
             this.fireRate = Math.floor(this.fireRate * 0.9);
+            this.maxHealth = Math.floor(this.maxHealth * 1.2);
+            this.health = this.maxHealth; // fully heal on upgrade
             this.upgradeCost = Math.floor(this.upgradeCost * 1.5);
             console.log(`tower upgraded to level ${this.level}`);
             return true;
@@ -254,11 +325,6 @@ class Tower {
                 const bullet = new Bullet(this.x, this.y, target.x, target.y, this.damage, splashRadius);
                 bullets.push(bullet);
                 this.lastFireTime = currentTime;
-                if (this.type === 'sniper') {
-                    console.log(`sniper fired! damage: ${this.damage}, bullet created`);
-                }
-            } else if (this.type === 'sniper') {
-                console.log(`sniper ready to fire but no target in range (${this.range})`);
             }
         }
     }
@@ -476,7 +542,7 @@ function handleMouseClick(event) {
         if (money >= tower.cost) {
             towers.push(tower);
             money -= tower.cost;
-            console.log(`placed ${selectedTowerType} tower at (${gridPos.x}, ${gridPos.y}) for $${tower.cost}. Tower stats: damage=${tower.damage}, range=${tower.range}, fireRate=${tower.fireRate}`);
+            console.log(`placed ${selectedTowerType} tower at (${gridPos.x}, ${gridPos.y}) for $${tower.cost}`);
         } else {
             console.log(`not enough money! need $${tower.cost}, have $${money}`);
         }
@@ -781,6 +847,9 @@ function gameLoop(currentTime) {
         const enemy = enemies[i];
         const result = enemy.update();
 
+        // attack nearby towers
+        enemy.attackNearbyTowers();
+
         // remove dead enemies
         if (enemy.health <= 0) {
             enemies.splice(i, 1);
@@ -795,11 +864,19 @@ function gameLoop(currentTime) {
         }
     }
     
-    // update towers (shooting)
-    towers.forEach(tower => {
-        tower.shoot();
-        tower.draw();
-    });
+    // update towers (shooting) and remove destroyed ones
+    for (let i = towers.length - 1; i >= 0; i--) {
+        const tower = towers[i];
+
+        // remove destroyed towers
+        if (tower.health <= 0) {
+            towers.splice(i, 1);
+            console.log(`Tower destroyed! ${towers.length} towers remaining`);
+        } else {
+            tower.shoot();
+            tower.draw();
+        }
+    }
     
     // update and draw bullets (iterate backwards to safely remove)
     for (let i = bullets.length - 1; i >= 0; i--) {
