@@ -776,23 +776,24 @@ function gameLoop(currentTime) {
     // draw path
     drawPath();
     
-    // update and draw enemies
-    enemies.forEach((enemy, index) => {
+    // update and draw enemies (iterate backwards to safely remove)
+    for (let i = enemies.length - 1; i >= 0; i--) {
+        const enemy = enemies[i];
         const result = enemy.update();
-        
+
         // remove dead enemies
         if (enemy.health <= 0) {
-            enemies.splice(index, 1);
+            enemies.splice(i, 1);
             kills++;
             money += enemy.reward;
             console.log(`enemy killed! +${enemy.reward} money, total kills: ${kills}, money: ${money}`);
         } else if (result === 'reached_end') {
             // remove enemy that reached end
-            enemies.splice(index, 1);
+            enemies.splice(i, 1);
         } else {
             enemy.draw();
         }
-    });
+    }
     
     // update towers (shooting)
     towers.forEach(tower => {
@@ -800,17 +801,18 @@ function gameLoop(currentTime) {
         tower.draw();
     });
     
-    // update and draw bullets
-    bullets.forEach((bullet, index) => {
+    // update and draw bullets (iterate backwards to safely remove)
+    for (let i = bullets.length - 1; i >= 0; i--) {
+        const bullet = bullets[i];
         bullet.update();
         bullet.draw();
-        
+
         // remove bullets that reached target and apply damage
         if (bullet.reachedTarget()) {
             bullet.applySplashDamage();
-            bullets.splice(index, 1);
+            bullets.splice(i, 1);
         }
-    });
+    }
     
     // draw preview tower
     if (previewTower) {
