@@ -19,6 +19,8 @@ let waveInProgress = false;
 let waveSpawnTimer = 0;
 let enemiesSpawned = 0;
 let enemiesPerWave = 5;
+let maxWaves = 10;
+let gameWon = false;
 
 // grid variables
 const gridSize = 20; // 20x20 grid
@@ -456,13 +458,20 @@ function startWave() {
 function spawnEnemy() {
     const startPos = gridToPixel(path[0].x, path[0].y);
     
-    // determine enemy type based on wave
+    // determine enemy type based on wave with better progression
     let enemyType = 'basic';
-    if (currentWave >= 3) {
-        enemyType = Math.random() < 0.3 ? 'fast' : 'basic';
+    const rand = Math.random();
+    
+    if (currentWave >= 2) {
+        if (rand < 0.2) enemyType = 'fast';
     }
-    if (currentWave >= 5) {
-        enemyType = Math.random() < 0.2 ? 'tank' : enemyType;
+    if (currentWave >= 4) {
+        if (rand < 0.1) enemyType = 'tank';
+        else if (rand < 0.4) enemyType = 'fast';
+    }
+    if (currentWave >= 7) {
+        if (rand < 0.2) enemyType = 'tank';
+        else if (rand < 0.5) enemyType = 'fast';
     }
     
     enemies.push(new Enemy(startPos.x + cellWidth/2, startPos.y + cellHeight/2, enemyType));
@@ -474,10 +483,19 @@ function spawnEnemy() {
 function checkWaveComplete() {
     if (waveInProgress && enemiesSpawned >= enemiesPerWave && enemies.length === 0) {
         waveInProgress = false;
-        currentWave++;
-        enemiesPerWave += 2; // increase difficulty
-        money += 50; // bonus money for completing wave
-        console.log(`wave ${currentWave - 1} complete! bonus: $50`);
+        
+        if (currentWave >= maxWaves) {
+            // game won!
+            gameWon = true;
+            gameRunning = false;
+            console.log('VICTORY! All waves completed!');
+        } else {
+            // next wave
+            currentWave++;
+            enemiesPerWave = Math.min(enemiesPerWave + 2, 15); // cap at 15 enemies per wave
+            money += 50 + (currentWave * 10); // increasing bonus money
+            console.log(`wave ${currentWave - 1} complete! bonus: $${50 + (currentWave * 10)}`);
+        }
     }
 }
 
@@ -616,6 +634,13 @@ function gameLoop(currentTime) {
     ctx.fillText(`Kills: ${kills}`, 10, 50);
     ctx.fillText(`Money: $${money}`, 10, 75);
     
+    // draw wave progress
+    if (waveInProgress) {
+        ctx.fillText(`Wave ${currentWave}: ${enemiesSpawned}/${enemiesPerWave}`, 10, 100);
+    } else if (!gameWon && health > 0) {
+        ctx.fillText(`Wave ${currentWave} Complete! Click Next Wave`, 10, 100);
+    }
+    
     // update UI
     updateUI();
     
@@ -637,6 +662,13 @@ function gameLoop(currentTime) {
         ctx.font = '48px Arial';
         ctx.fillText('GAME OVER', canvas.width/2 - 150, canvas.height/2);
         gameRunning = false;
+    } else if (gameWon) {
+        ctx.fillStyle = 'gold';
+        ctx.font = '48px Arial';
+        ctx.fillText('VICTORY!', canvas.width/2 - 120, canvas.height/2);
+        ctx.font = '24px Arial';
+        ctx.fillText(`Waves Completed: ${maxWaves}`, canvas.width/2 - 100, canvas.height/2 + 50);
+        ctx.fillText(`Total Kills: ${kills}`, canvas.width/2 - 80, canvas.height/2 + 80);
     } else if (gameRunning) {
         // game is running
         ctx.fillStyle = 'yellow';
