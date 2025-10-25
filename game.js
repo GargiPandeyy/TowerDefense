@@ -156,6 +156,8 @@ class Tower {
         
         this.lastFireTime = 0;
         this.showRange = false;
+        this.level = 1;
+        this.upgradeCost = Math.floor(this.cost * 0.5);
     }
     
     // draw the tower
@@ -177,6 +179,11 @@ class Tower {
         ctx.strokeStyle = '#000';
         ctx.lineWidth = 2;
         ctx.strokeRect(this.x - 15, this.y - 15, 30, 30);
+        
+        // draw level indicator
+        ctx.fillStyle = 'white';
+        ctx.font = '12px Arial';
+        ctx.fillText(this.level.toString(), this.x - 5, this.y + 5);
     }
     
     // draw preview (semi-transparent)
@@ -194,6 +201,21 @@ class Tower {
         ctx.strokeStyle = '#000';
         ctx.lineWidth = 2;
         ctx.strokeRect(this.x - 15, this.y - 15, 30, 30);
+    }
+    
+    // upgrade tower
+    upgrade() {
+        if (money >= this.upgradeCost) {
+            money -= this.upgradeCost;
+            this.level++;
+            this.damage = Math.floor(this.damage * 1.3);
+            this.range = Math.floor(this.range * 1.1);
+            this.fireRate = Math.floor(this.fireRate * 0.9);
+            this.upgradeCost = Math.floor(this.upgradeCost * 1.5);
+            console.log(`tower upgraded to level ${this.level}`);
+            return true;
+        }
+        return false;
     }
     
     // find target enemy
@@ -333,6 +355,7 @@ function setupEventListeners() {
     // add mouse events for tower placement
     canvas.addEventListener('mousemove', handleMouseMove);
     canvas.addEventListener('click', handleMouseClick);
+    canvas.addEventListener('contextmenu', handleRightClick);
     
     // add tower selection buttons
     const basicTowerBtn = document.getElementById('basicTowerBtn');
@@ -434,6 +457,25 @@ function handleMouseClick(event) {
             console.log(`placed ${selectedTowerType} tower at (${gridPos.x}, ${gridPos.y}) for $${tower.cost}`);
         } else {
             console.log(`not enough money! need $${tower.cost}, have $${money}`);
+        }
+    }
+}
+
+// handle right click for tower upgrade
+function handleRightClick(event) {
+    event.preventDefault(); // prevent context menu
+    
+    const rect = canvas.getBoundingClientRect();
+    const mouseX = event.clientX - rect.left;
+    const mouseY = event.clientY - rect.top;
+    
+    // find tower at mouse position
+    const tower = getTowerAtPosition(mouseX, mouseY);
+    if (tower) {
+        if (tower.upgrade()) {
+            console.log(`upgraded tower to level ${tower.level}`);
+        } else {
+            console.log(`not enough money to upgrade! need $${tower.upgradeCost}`);
         }
     }
 }
