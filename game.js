@@ -207,7 +207,8 @@ class Tower {
         if (currentTime - this.lastFireTime >= this.fireRate) {
             const target = this.findTarget();
             if (target) {
-                const bullet = new Bullet(this.x, this.y, target.x, target.y, this.damage);
+                const splashRadius = this.splashRadius || 0;
+                const bullet = new Bullet(this.x, this.y, target.x, target.y, this.damage, splashRadius);
                 bullets.push(bullet);
                 this.lastFireTime = currentTime;
             }
@@ -217,12 +218,13 @@ class Tower {
 
 // bullet class
 class Bullet {
-    constructor(x, y, targetX, targetY, damage) {
+    constructor(x, y, targetX, targetY, damage, splashRadius = 0) {
         this.x = x;
         this.y = y;
         this.targetX = targetX;
         this.targetY = targetY;
         this.damage = damage;
+        this.splashRadius = splashRadius;
         this.speed = 5;
         
         // calculate direction
@@ -241,7 +243,13 @@ class Bullet {
     
     // draw bullet
     draw() {
-        ctx.fillStyle = '#FFFF00'; // yellow bullet
+        if (this.splashRadius > 0) {
+            // splash bullet - green
+            ctx.fillStyle = '#00FF00';
+        } else {
+            // regular bullet - yellow
+            ctx.fillStyle = '#FFFF00';
+        }
         ctx.beginPath();
         ctx.arc(this.x, this.y, 3, 0, 2 * Math.PI);
         ctx.fill();
@@ -253,6 +261,41 @@ class Bullet {
         const dy = this.targetY - this.y;
         const distance = Math.sqrt(dx * dx + dy * dy);
         return distance < 5;
+    }
+    
+    // apply splash damage
+    applySplashDamage() {
+        if (this.splashRadius > 0) {
+            // draw splash effect
+            ctx.strokeStyle = 'rgba(255, 255, 0, 0.8)';
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.arc(this.x, this.y, this.splashRadius, 0, 2 * Math.PI);
+            ctx.stroke();
+            
+            enemies.forEach(enemy => {
+                const dx = enemy.x - this.x;
+                const dy = enemy.y - this.y;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                
+                if (distance <= this.splashRadius) {
+                    enemy.health -= this.damage;
+                    console.log(`splash damage: ${this.damage} to enemy`);
+                }
+            });
+        } else {
+            // single target damage
+            enemies.forEach(enemy => {
+                const dx = enemy.x - this.x;
+                const dy = enemy.y - this.y;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                
+                if (distance < 10) {
+                    enemy.health -= this.damage;
+                    console.log(`damage: ${this.damage} to enemy`);
+                }
+            });
+        }
     }
 }
 
@@ -484,8 +527,9 @@ function gameLoop(currentTime) {
         bullet.update();
         bullet.draw();
         
-        // remove bullets that reached target
+        // remove bullets that reached target and apply damage
         if (bullet.reachedTarget()) {
+            bullet.applySplashDamage();
             bullets.splice(index, 1);
         }
     });
