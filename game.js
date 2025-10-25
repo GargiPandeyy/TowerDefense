@@ -14,6 +14,11 @@ let previewTower = null;
 let kills = 0;
 let money = 100;
 let health = 20;
+let currentWave = 1;
+let waveInProgress = false;
+let waveSpawnTimer = 0;
+let enemiesSpawned = 0;
+let enemiesPerWave = 5;
 
 // grid variables
 const gridSize = 20; // 20x20 grid
@@ -316,9 +321,11 @@ function init() {
 function setupEventListeners() {
     const startBtn = document.getElementById('startBtn');
     const pauseBtn = document.getElementById('pauseBtn');
+    const nextWaveBtn = document.getElementById('nextWaveBtn');
     
     startBtn.addEventListener('click', startGame);
     pauseBtn.addEventListener('click', pauseGame);
+    nextWaveBtn.addEventListener('click', startWave);
     
     // add mouse events for tower placement
     canvas.addEventListener('mousemove', handleMouseMove);
@@ -339,11 +346,8 @@ function startGame() {
     gameRunning = true;
     console.log('game started');
     
-    // create test enemies at start point
-    const startPos = gridToPixel(path[0].x, path[0].y);
-    enemies.push(new Enemy(startPos.x + cellWidth/2, startPos.y + cellHeight/2, 'basic'));
-    enemies.push(new Enemy(startPos.x + cellWidth/2, startPos.y + cellHeight/2 + 30, 'fast'));
-    enemies.push(new Enemy(startPos.x + cellWidth/2, startPos.y + cellHeight/2 + 60, 'tank'));
+    // start first wave
+    startWave();
 }
 
 // pause game
@@ -435,7 +439,46 @@ function handleMouseClick(event) {
 function updateUI() {
     document.getElementById('money').textContent = money;
     document.getElementById('health').textContent = health;
-    document.getElementById('wave').textContent = '1'; // will implement wave system later
+    document.getElementById('wave').textContent = currentWave;
+}
+
+// start wave
+function startWave() {
+    if (!waveInProgress) {
+        waveInProgress = true;
+        enemiesSpawned = 0;
+        waveSpawnTimer = 0;
+        console.log(`starting wave ${currentWave}`);
+    }
+}
+
+// spawn enemy
+function spawnEnemy() {
+    const startPos = gridToPixel(path[0].x, path[0].y);
+    
+    // determine enemy type based on wave
+    let enemyType = 'basic';
+    if (currentWave >= 3) {
+        enemyType = Math.random() < 0.3 ? 'fast' : 'basic';
+    }
+    if (currentWave >= 5) {
+        enemyType = Math.random() < 0.2 ? 'tank' : enemyType;
+    }
+    
+    enemies.push(new Enemy(startPos.x + cellWidth/2, startPos.y + cellHeight/2, enemyType));
+    enemiesSpawned++;
+    console.log(`spawned ${enemyType} enemy (${enemiesSpawned}/${enemiesPerWave})`);
+}
+
+// check if wave is complete
+function checkWaveComplete() {
+    if (waveInProgress && enemiesSpawned >= enemiesPerWave && enemies.length === 0) {
+        waveInProgress = false;
+        currentWave++;
+        enemiesPerWave += 2; // increase difficulty
+        money += 50; // bonus money for completing wave
+        console.log(`wave ${currentWave - 1} complete! bonus: $50`);
+    }
 }
 
 // convert pixel coordinates to grid coordinates
@@ -575,6 +618,18 @@ function gameLoop(currentTime) {
     
     // update UI
     updateUI();
+    
+    // handle wave spawning
+    if (gameRunning && waveInProgress && enemiesSpawned < enemiesPerWave) {
+        waveSpawnTimer++;
+        if (waveSpawnTimer >= 60) { // spawn every 60 frames (1 second at 60fps)
+            spawnEnemy();
+            waveSpawnTimer = 0;
+        }
+    }
+    
+    // check wave completion
+    checkWaveComplete();
     
     // check game over
     if (health <= 0) {
