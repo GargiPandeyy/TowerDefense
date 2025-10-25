@@ -21,6 +21,8 @@ let enemiesSpawned = 0;
 let enemiesPerWave = 5;
 let maxWaves = 10;
 let gameWon = false;
+let showTutorial = true;
+let tutorialStep = 0;
 
 // grid variables
 const gridSize = 20; // 20x20 grid
@@ -347,10 +349,15 @@ function setupEventListeners() {
     const startBtn = document.getElementById('startBtn');
     const pauseBtn = document.getElementById('pauseBtn');
     const nextWaveBtn = document.getElementById('nextWaveBtn');
+    const tutorialBtn = document.getElementById('tutorialBtn');
     
     startBtn.addEventListener('click', startGame);
     pauseBtn.addEventListener('click', pauseGame);
     nextWaveBtn.addEventListener('click', startWave);
+    tutorialBtn.addEventListener('click', () => {
+        showTutorial = true;
+        tutorialStep = 0;
+    });
     
     // add mouse events for tower placement
     canvas.addEventListener('mousemove', handleMouseMove);
@@ -435,6 +442,11 @@ function getTowerAtPosition(mouseX, mouseY) {
 
 // handle mouse click for tower placement
 function handleMouseClick(event) {
+    // check tutorial first
+    if (handleTutorialClick(event)) {
+        return;
+    }
+    
     const rect = canvas.getBoundingClientRect();
     const mouseX = event.clientX - rect.left;
     const mouseY = event.clientY - rect.top;
@@ -461,6 +473,11 @@ function handleMouseClick(event) {
     }
 }
 
+// check if grid position is on the path
+function isOnPath(gridX, gridY) {
+    return path.some(point => point.x === gridX && point.y === gridY);
+}
+
 // handle right click for tower upgrade
 function handleRightClick(event) {
     event.preventDefault(); // prevent context menu
@@ -478,6 +495,125 @@ function handleRightClick(event) {
             console.log(`not enough money to upgrade! need $${tower.upgradeCost}`);
         }
     }
+}
+
+// tutorial steps
+const tutorialSteps = [
+    {
+        title: "Welcome to Tower Defense!",
+        text: "Place towers to stop enemies from reaching the end of the path. Click anywhere on the grid to place a tower.",
+        action: "Click to place a tower"
+    },
+    {
+        title: "Tower Types",
+        text: "Choose different tower types: Basic (fast, low damage), Sniper (slow, high damage), Splash (area damage).",
+        action: "Try different tower types"
+    },
+    {
+        title: "Tower Upgrades",
+        text: "Right-click on towers to upgrade them. Upgrades increase damage, range, and fire rate.",
+        action: "Right-click a tower to upgrade"
+    },
+    {
+        title: "Waves & Money",
+        text: "Kill enemies to earn money. Complete waves to get bonus money. Survive 10 waves to win!",
+        action: "Start your first wave"
+    }
+];
+
+// draw tutorial
+function drawTutorial() {
+    if (!showTutorial) return;
+    
+    const step = tutorialSteps[tutorialStep];
+    if (!step) return;
+    
+    // semi-transparent overlay
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    
+    // tutorial box
+    const boxWidth = 400;
+    const boxHeight = 200;
+    const boxX = (canvas.width - boxWidth) / 2;
+    const boxY = (canvas.height - boxHeight) / 2;
+    
+    ctx.fillStyle = '#2c3e50';
+    ctx.fillRect(boxX, boxY, boxWidth, boxHeight);
+    
+    ctx.strokeStyle = '#3498db';
+    ctx.lineWidth = 3;
+    ctx.strokeRect(boxX, boxY, boxWidth, boxHeight);
+    
+    // title
+    ctx.fillStyle = '#3498db';
+    ctx.font = 'bold 24px Arial';
+    ctx.textAlign = 'center';
+    ctx.fillText(step.title, canvas.width / 2, boxY + 40);
+    
+    // text
+    ctx.fillStyle = 'white';
+    ctx.font = '16px Arial';
+    ctx.fillText(step.text, canvas.width / 2, boxY + 80);
+    
+    // action
+    ctx.fillStyle = '#f39c12';
+    ctx.font = 'bold 18px Arial';
+    ctx.fillText(step.action, canvas.width / 2, boxY + 120);
+    
+    // next button
+    ctx.fillStyle = '#27ae60';
+    ctx.fillRect(boxX + 50, boxY + 140, 100, 40);
+    ctx.fillStyle = 'white';
+    ctx.font = '16px Arial';
+    ctx.textAlign = 'center';
+    ctx.fillText('Next', boxX + 100, boxY + 165);
+    
+    // skip button
+    ctx.fillStyle = '#e74c3c';
+    ctx.fillRect(boxX + 250, boxY + 140, 100, 40);
+    ctx.fillStyle = 'white';
+    ctx.fillText('Skip', boxX + 300, boxY + 165);
+    
+    ctx.textAlign = 'left'; // reset alignment
+}
+
+// handle tutorial clicks
+function handleTutorialClick(event) {
+    if (!showTutorial) return;
+    
+    const rect = canvas.getBoundingClientRect();
+    const mouseX = event.clientX - rect.left;
+    const mouseY = event.clientY - rect.top;
+    
+    const boxWidth = 400;
+    const boxHeight = 200;
+    const boxX = (canvas.width - boxWidth) / 2;
+    const boxY = (canvas.height - boxHeight) / 2;
+    
+    // check if click is in tutorial box
+    if (mouseX >= boxX && mouseX <= boxX + boxWidth && 
+        mouseY >= boxY && mouseY <= boxY + boxHeight) {
+        
+        // next button
+        if (mouseX >= boxX + 50 && mouseX <= boxX + 150 && 
+            mouseY >= boxY + 140 && mouseY <= boxY + 180) {
+            tutorialStep++;
+            if (tutorialStep >= tutorialSteps.length) {
+                showTutorial = false;
+            }
+        }
+        
+        // skip button
+        if (mouseX >= boxX + 250 && mouseX <= boxX + 350 && 
+            mouseY >= boxY + 140 && mouseY <= boxY + 180) {
+            showTutorial = false;
+        }
+        
+        return true; // tutorial handled the click
+    }
+    
+    return false; // tutorial didn't handle the click
 }
 
 // update UI display
@@ -669,6 +805,9 @@ function gameLoop(currentTime) {
     if (previewTower) {
         previewTower.drawPreview();
     }
+    
+    // draw tutorial
+    drawTutorial();
     
     // draw fps counter
     ctx.fillStyle = 'white';
