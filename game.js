@@ -13,6 +13,7 @@ let selectedTowerType = 'basic';
 let previewTower = null;
 let kills = 0;
 let money = 100;
+let health = 20;
 
 // grid variables
 const gridSize = 20; // 20x20 grid
@@ -63,7 +64,10 @@ class Enemy {
     // update enemy position
     update() {
         if (this.pathIndex >= path.length - 1) {
-            return; // reached end
+            // reached end - reduce player health
+            health--;
+            console.log(`enemy reached end! health: ${health}`);
+            return 'reached_end';
         }
         
         // get current target
@@ -430,7 +434,7 @@ function handleMouseClick(event) {
 // update UI display
 function updateUI() {
     document.getElementById('money').textContent = money;
-    document.getElementById('health').textContent = '20'; // will implement health system later
+    document.getElementById('health').textContent = health;
     document.getElementById('wave').textContent = '1'; // will implement wave system later
 }
 
@@ -523,7 +527,7 @@ function gameLoop(currentTime) {
     
     // update and draw enemies
     enemies.forEach((enemy, index) => {
-        enemy.update();
+        const result = enemy.update();
         
         // remove dead enemies
         if (enemy.health <= 0) {
@@ -531,6 +535,9 @@ function gameLoop(currentTime) {
             kills++;
             money += enemy.reward;
             console.log(`enemy killed! +${enemy.reward} money, total kills: ${kills}, money: ${money}`);
+        } else if (result === 'reached_end') {
+            // remove enemy that reached end
+            enemies.splice(index, 1);
         } else {
             enemy.draw();
         }
@@ -569,15 +576,22 @@ function gameLoop(currentTime) {
     // update UI
     updateUI();
     
-    // draw game elements (will add later)
-    if (gameRunning) {
+    // check game over
+    if (health <= 0) {
+        ctx.fillStyle = 'red';
+        ctx.font = '48px Arial';
+        ctx.fillText('GAME OVER', canvas.width/2 - 150, canvas.height/2);
+        gameRunning = false;
+    } else if (gameRunning) {
         // game is running
         ctx.fillStyle = 'yellow';
-        ctx.fillText('GAME RUNNING', 10, 50);
+        ctx.font = '16px Arial';
+        ctx.fillText('GAME RUNNING', 10, 100);
     } else {
         // game is paused
         ctx.fillStyle = 'red';
-        ctx.fillText('GAME PAUSED', 10, 50);
+        ctx.font = '16px Arial';
+        ctx.fillText('GAME PAUSED', 10, 100);
     }
     
     // continue loop
