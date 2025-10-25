@@ -39,31 +39,32 @@ const path = [
 
 // enemy class
 class Enemy {
-    constructor(x, y, type = 'basic') {
+    constructor(x, y, type = 'basic', waveMultiplier = 1) {
         this.x = x;
         this.y = y;
         this.type = type;
         this.pathIndex = 0;
+        this.waveMultiplier = waveMultiplier;
         
-        // set stats based on type
+        // set stats based on type with wave scaling
         if (type === 'fast') {
-            this.health = 30;
-            this.maxHealth = 30;
-            this.speed = 2;
-            this.reward = 15;
+            this.health = Math.floor(30 * (1 + waveMultiplier * 0.2));
+            this.maxHealth = this.health;
+            this.speed = 2 + (waveMultiplier * 0.1);
+            this.reward = Math.floor(15 * (1 + waveMultiplier * 0.3));
             this.color = '#FFD700'; // gold color
         } else if (type === 'tank') {
-            this.health = 100;
-            this.maxHealth = 100;
-            this.speed = 0.5;
-            this.reward = 25;
+            this.health = Math.floor(100 * (1 + waveMultiplier * 0.3));
+            this.maxHealth = this.health;
+            this.speed = Math.max(0.5 - (waveMultiplier * 0.02), 0.2);
+            this.reward = Math.floor(25 * (1 + waveMultiplier * 0.4));
             this.color = '#8B4513'; // brown color
         } else {
             // basic enemy
-            this.health = 50;
-            this.maxHealth = 50;
-            this.speed = 1;
-            this.reward = 10;
+            this.health = Math.floor(50 * (1 + waveMultiplier * 0.25));
+            this.maxHealth = this.health;
+            this.speed = 1 + (waveMultiplier * 0.05);
+            this.reward = Math.floor(10 * (1 + waveMultiplier * 0.2));
             this.color = '#FF6B6B'; // red color
         }
     }
@@ -474,9 +475,9 @@ function spawnEnemy() {
         else if (rand < 0.5) enemyType = 'fast';
     }
     
-    enemies.push(new Enemy(startPos.x + cellWidth/2, startPos.y + cellHeight/2, enemyType));
+    enemies.push(new Enemy(startPos.x + cellWidth/2, startPos.y + cellHeight/2, enemyType, currentWave));
     enemiesSpawned++;
-    console.log(`spawned ${enemyType} enemy (${enemiesSpawned}/${enemiesPerWave})`);
+    console.log(`spawned ${enemyType} enemy (${enemiesSpawned}/${enemiesPerWave}) - Wave ${currentWave}`);
 }
 
 // check if wave is complete
@@ -637,6 +638,7 @@ function gameLoop(currentTime) {
     // draw wave progress
     if (waveInProgress) {
         ctx.fillText(`Wave ${currentWave}: ${enemiesSpawned}/${enemiesPerWave}`, 10, 100);
+        ctx.fillText(`Difficulty: ${Math.floor(currentWave * 1.2)}%`, 10, 120);
     } else if (!gameWon && health > 0) {
         ctx.fillText(`Wave ${currentWave} Complete! Click Next Wave`, 10, 100);
     }
