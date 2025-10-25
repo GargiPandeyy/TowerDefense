@@ -160,6 +160,11 @@ class Tower {
         this.showRange = false;
         this.level = 1;
         this.upgradeCost = Math.floor(this.cost * 0.5);
+
+        // Debug: log tower creation
+        if (type === 'sniper') {
+            console.log(`SNIPER TOWER CREATED: damage=${this.damage}, range=${this.range}, fireRate=${this.fireRate}, lastFireTime=${this.lastFireTime}`);
+        }
     }
     
     // draw the tower
