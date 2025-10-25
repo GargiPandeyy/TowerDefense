@@ -108,3 +108,23 @@ body {
     background-color: #2c3e50;
     border-radius: 3px;
 }
+
+.instructions {
+    margin-top: 20px;
+    background-color: #34495e;
+    padding: 15px;
+    border-radius: 5px;
+    border: 2px solid #9b59b6;
+}
+
+.instructions h3 {
+    margin-top: 0;
+    color: #9b59b6;
+}
+
+.instruction-item {
+    margin: 5px 0;
+    padding: 5px;
+    background-color: #2c3e50;
+    border-radius: 3px;
+}

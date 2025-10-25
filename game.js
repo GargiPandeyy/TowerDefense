@@ -822,6 +822,7 @@ function gameLoop(currentTime) {
         ctx.fillText(`Difficulty: ${Math.floor(currentWave * 1.2)}%`, 10, 120);
     } else if (!gameWon && health > 0) {
         ctx.fillText(`Wave ${currentWave} Complete! Click Next Wave`, 10, 100);
+        ctx.fillText(`Bonus Money: +$${50 + (currentWave * 10)}`, 10, 120);
     }
     
     // update UI
