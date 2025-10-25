@@ -11,6 +11,7 @@ let towers = [];
 let bullets = [];
 let selectedTowerType = 'basic';
 let previewTower = null;
+let kills = 0;
 
 // grid variables
 const gridSize = 20; // 20x20 grid
@@ -511,9 +512,17 @@ function gameLoop(currentTime) {
     drawPath();
     
     // update and draw enemies
-    enemies.forEach(enemy => {
+    enemies.forEach((enemy, index) => {
         enemy.update();
-        enemy.draw();
+        
+        // remove dead enemies
+        if (enemy.health <= 0) {
+            enemies.splice(index, 1);
+            kills++;
+            console.log(`enemy killed! total kills: ${kills}`);
+        } else {
+            enemy.draw();
+        }
     });
     
     // update towers (shooting)
@@ -543,6 +552,7 @@ function gameLoop(currentTime) {
     ctx.fillStyle = 'white';
     ctx.font = '16px Arial';
     ctx.fillText(`FPS: ${fps}`, 10, 25);
+    ctx.fillText(`Kills: ${kills}`, 10, 50);
     
     // draw game elements (will add later)
     if (gameRunning) {
