@@ -12,6 +12,7 @@ let bullets = [];
 let selectedTowerType = 'basic';
 let previewTower = null;
 let kills = 0;
+let money = 100;
 
 // grid variables
 const gridSize = 20; // 20x20 grid
@@ -412,16 +413,25 @@ function handleMouseClick(event) {
     const isValidPosition = !isOnPath(gridPos.x, gridPos.y);
     
     if (isValidPosition) {
-        // place tower
+        // create tower to check cost
         const tower = new Tower(pixelPos.x + cellWidth/2, pixelPos.y + cellHeight/2, selectedTowerType);
-        towers.push(tower);
-        console.log(`placed ${selectedTowerType} tower at (${gridPos.x}, ${gridPos.y})`);
+        
+        // check if player can afford tower
+        if (money >= tower.cost) {
+            towers.push(tower);
+            money -= tower.cost;
+            console.log(`placed ${selectedTowerType} tower at (${gridPos.x}, ${gridPos.y}) for $${tower.cost}`);
+        } else {
+            console.log(`not enough money! need $${tower.cost}, have $${money}`);
+        }
     }
 }
 
-// check if grid position is on the path
-function isOnPath(gridX, gridY) {
-    return path.some(point => point.x === gridX && point.y === gridY);
+// update UI display
+function updateUI() {
+    document.getElementById('money').textContent = money;
+    document.getElementById('health').textContent = '20'; // will implement health system later
+    document.getElementById('wave').textContent = '1'; // will implement wave system later
 }
 
 // convert pixel coordinates to grid coordinates
@@ -519,7 +529,8 @@ function gameLoop(currentTime) {
         if (enemy.health <= 0) {
             enemies.splice(index, 1);
             kills++;
-            console.log(`enemy killed! total kills: ${kills}`);
+            money += enemy.reward;
+            console.log(`enemy killed! +${enemy.reward} money, total kills: ${kills}, money: ${money}`);
         } else {
             enemy.draw();
         }
@@ -553,6 +564,10 @@ function gameLoop(currentTime) {
     ctx.font = '16px Arial';
     ctx.fillText(`FPS: ${fps}`, 10, 25);
     ctx.fillText(`Kills: ${kills}`, 10, 50);
+    ctx.fillText(`Money: $${money}`, 10, 75);
+    
+    // update UI
+    updateUI();
     
     // draw game elements (will add later)
     if (gameRunning) {
